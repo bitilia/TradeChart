@@ -8,7 +8,7 @@ from io import StringIO
 import pandas as pd
 
 from tradechart.data.models import MarketData
-from tradechart.data.provider_base import BaseProvider
+from tradechart.data.provider_base import BaseProvider, to_utc_index
 from tradechart.config.logger import get_logger
 
 _DAYS_MAP: dict[str, int] = {
@@ -56,7 +56,6 @@ class StooqProvider(BaseProvider):
         keep = ["Open", "High", "Low", "Close", "Volume"]
         df = df[[c for c in keep if c in df.columns]]
 
-        if df.index.tz is not None:
-            df.index = df.index.tz_localize(None)
+        to_utc_index(df)
 
         return MarketData(ticker=ticker, duration=duration, provider=self.name, df=df)

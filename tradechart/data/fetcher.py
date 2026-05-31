@@ -14,6 +14,14 @@ from tradechart.data.provider_base import BaseProvider
 from tradechart.utils.exceptions import DataFetchError
 
 
+def _to_utc(df: pd.DataFrame) -> pd.DataFrame:
+    if df.index.tz is None:
+        df.index = df.index.tz_localize("UTC")
+    else:
+        df.index = df.index.tz_convert("UTC")
+    return df
+
+
 def _merge(stored: pd.DataFrame, fresh: pd.DataFrame) -> pd.DataFrame:
     """Merge stored history with freshly-fetched rows.
 
@@ -22,7 +30,7 @@ def _merge(stored: pd.DataFrame, fresh: pd.DataFrame) -> pd.DataFrame:
     (handles end-of-day corrections / partial bars).  Rows that exist only
     in *fresh* (new bars) are appended.  The result is sorted by date.
     """
-    combined = pd.concat([stored, fresh])
+    combined = pd.concat([_to_utc(stored), _to_utc(fresh)])
     combined = combined[~combined.index.duplicated(keep="last")]
     return combined.sort_index()
 
